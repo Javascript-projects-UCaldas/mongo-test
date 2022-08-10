@@ -1,0 +1,50 @@
+const suscriptorId = 1;
+const empresaId = '62ebc745b80d1c1f8dc7d258'
+
+use('onboarding-db')
+
+db.getCollection('suscriptores').aggregate( [
+  { $match: { _id: suscriptorId }},
+  { $lookup: {
+    from: 'empresas',
+    localField: '_id',
+    foreignField: 'suscriptorId',
+    as: 'empresas'
+    }},
+  { $unwind: "$empresas" },
+  { $lookup: {
+    from: 'planes',
+    localField: '_id',
+    foreignField: 'suscriptorId',
+    as: 'planes'
+    }},
+  { $match: { 'planes.empresaId': empresaId }},
+  { $unwind: "$planes" },
+  { $lookup: {
+    from: 'bancos',
+    localField: '_id',
+    foreignField: 'suscriptorId',
+    as: 'bancos'
+    }},
+  { $unwind: "$bancos" },
+  { $match: { "bancos.empresaId" : empresaId }},
+  { $lookup:{
+    from: 'colaboradores',
+    localField: '_id',
+    foreignField: 'suscriptorId',
+    as: 'colaboradores'
+  }},
+  { $project: {
+    __v: 0, 
+    "empresas.suscriptorId": 0,
+    "empresas._id" : 0,
+    "planes.suscriptorId": 0,
+    "planes._id" : 0,
+    'colaboradores._id' : 0, 
+    'colaboradores.suscriptorId' : 0,
+    'colaboradores.empresaId' : 0,
+    "planes.empresaId" : 0,
+    "bancos.empresaId" : 0,
+    "bancos._id" : 0,
+    "bancos.suscriptorId": 0
+}}]);
